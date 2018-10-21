@@ -1,0 +1,3 @@
+POSTGRES_USER=pgdb1_role
+POSTGRES_PASSWORD=pgdb1_password
+POSTGRES_DB=pgdb1

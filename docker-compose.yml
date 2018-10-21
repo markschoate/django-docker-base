@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  djangoapp:
+    build: .
+    volumes:
+    - .:/app
+    - static_volume:/app/_assets/static  # <-- bind the static volume
+    - media_volume:/app/_assets/media
+    #ports:
+    #  - 8000:8000
+
+    networks:  # <-- here
+    - nginx_network
+    - pgdb1_network
+    depends_on:
+    - pgdb1
+  nginx:
+    image: nginx:1.13
+    ports:
+    - 8000:80
+    volumes:
+    - ./config/nginx/conf.d:/etc/nginx/conf.d
+    - static_volume:/app/_assets/static  # <-- bind the static volume
+    - media_volume:/app/_assets/media
+
+    depends_on:  # <-- wait for djangoapp to be "ready" before starting this service
+    - djangoapp
+    networks:  # <-- here
+    - nginx_network
+
+
+  pgdb1:  # <-- IMPORTANT: same name as in DATABASES setting, otherwise Django won't find the database!
+    image: postgres:10
+    env_file:  # <-- we use the previously defined values
+    - config/db/pgdb1_env
+    networks:  # <-- connect to the bridge
+    - pgdb1_network
+    volumes:
+    - pgdb1_volume:/var/lib/postgresql/data
+
+
+networks:  # <-- and here
+  nginx_network:
+  pgdb1_network:
+
+volumes:
+  pgdb1_volume:
+  static_volume:
+  media_volume:
